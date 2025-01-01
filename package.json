@@ -9,11 +9,16 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@tanstack/eslint-plugin-query": "^5.62.9",
     "@types/pg": "^8.11.10",
+    "axios": "^1.7.9",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-tailwindcss": "^3.17.5",
     "next": "15.1.1",
     "pg": "^8.13.1",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "react-query": "^3.39.3"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

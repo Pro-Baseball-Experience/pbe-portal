@@ -1,8 +1,5 @@
 import { Client, QueryConfig, QueryResult } from "pg";
-
-export type DatabaseQueryResult<T> =
-  | { rows: T[]; total: number | null }
-  | { error: unknown };
+import { DatabaseQueryResult } from ".";
 
 const initializeDB = (database: string | undefined): Client =>
   new Client({
