@@ -1,5 +1,4 @@
-import { useQuery } from "react-query";
-import { ApiResponse } from ".";
+import { useQuery as useReactQueryQuery } from "react-query";
 import { AxiosResponse } from "axios";
 
 type LoadingResponse = {
@@ -42,7 +41,7 @@ const LOADING_RESPONSE: QueryResponse<null> = {
   isError: false,
 } as const;
 
-export const query = <T>({
+export const useQuery = <T>({
   queryKey,
   queryFn,
   enabled,
@@ -51,7 +50,7 @@ export const query = <T>({
   queryFn: () => Promise<AxiosResponse<any, any>>;
   enabled?: boolean;
 }): QueryResponse<T> => {
-  const { data, isLoading, isError, refetch } = useQuery<{
+  const { data, isLoading, isError, refetch } = useReactQueryQuery<{
     data: ApiResponse<T>;
   }>({
     queryKey,

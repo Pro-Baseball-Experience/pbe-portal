@@ -2,7 +2,7 @@ import {
   MutationFunction,
   UseMutateAsyncFunction,
   UseMutateFunction,
-  useMutation,
+  useMutation as useReactQueryMutation,
 } from "react-query";
 
 type MutationResponse<D, V> = {
@@ -19,7 +19,7 @@ const LOADING_MUTATION: MutationResponse<any, any> = {
   isError: false,
 };
 
-export const mutation = <D, V extends unknown>({
+export const useMutation = <D, V extends unknown>({
   mutationFn,
   onSuccess,
   onError,
@@ -28,10 +28,13 @@ export const mutation = <D, V extends unknown>({
   onSuccess?: () => void;
   onError?: () => void;
 }): MutationResponse<D, V> => {
-  const { mutate, mutateAsync, isLoading, isError } = useMutation(mutationFn, {
-    onSuccess,
-    onError,
-  });
+  const { mutate, mutateAsync, isLoading, isError } = useReactQueryMutation(
+    mutationFn,
+    {
+      onSuccess,
+      onError,
+    }
+  );
 
   if (isLoading) {
     return LOADING_MUTATION;
