@@ -25,8 +25,8 @@ export const useMutation = <D, V extends unknown>({
   onError,
 }: {
   mutationFn: MutationFunction<any, V>;
-  onSuccess?: () => void;
-  onError?: () => void;
+  onSuccess?: Function;
+  onError?: Function;
 }): MutationResponse<D, V> => {
   const { mutate, mutateAsync, isLoading, isError } = useReactQueryMutation(
     mutationFn,

@@ -1,5 +1,6 @@
 import { useQuery as useReactQueryQuery } from "react-query";
 import { AxiosResponse } from "axios";
+import { ApiError } from "../services/ApiError.service";
 
 type LoadingResponse = {
   status: "loading";
@@ -14,12 +15,7 @@ type SuccessResponse<T> = {
 type ErrorResponse<T> = {
   status: "error";
   payload?: T;
-  error: {
-    message: string;
-    timestamp: Date;
-    code: number;
-    solution: string;
-  };
+  error: ApiError;
 };
 
 export type ApiResponse<T> =

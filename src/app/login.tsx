@@ -1,4 +1,5 @@
 import { useSession } from "@/components/contexts/SessionContext";
+import Footer from "@/components/layout/Footer";
 import { NextSeo } from "next-seo";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
@@ -23,6 +24,9 @@ export default function Login() {
   return (
     <>
       <NextSeo title="login" openGraph={{ title: "Login" }} />
+      <Header showAuthButtons={false} />
+
+      <Footer />
     </>
   );
 }

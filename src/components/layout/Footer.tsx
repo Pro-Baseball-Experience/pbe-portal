@@ -3,17 +3,18 @@ import { useCookie } from "@/lib/http/hooks/useCookie";
 import { useMutation } from "@/lib/http/hooks/useMutation";
 import {
   Button,
-  DrawerBackdrop,
   DrawerBody,
-  DrawerCloseTrigger,
   DrawerContent,
   DrawerHeader,
-  DrawerRoot,
-  DrawerTrigger,
+  Input,
   Link,
 } from "@chakra-ui/react";
 import axios from "axios";
 import { useState } from "react";
+import { toaster } from "../toast/toaster";
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { Alert } from "../alerts/Alert";
 
 type DrawerId = "bug" | "feature";
 type GithubIssueData = {
@@ -22,10 +23,27 @@ type GithubIssueData = {
   label: "bug" | "story" | null;
 };
 
+const bugFormSchema = z.object({
+  description: z.string(),
+  reproductionSteps: z.string().optional(),
+  operatingSystem: z.string().optional(),
+  browser: z.string().optional(),
+  device: z.string().optional(),
+});
+
+type BugForm = z.infer<typeof bugFormSchema>;
+
+const featureFormSchema = z.object({
+  description: z.string(),
+  desiredFunctionality: z.string().optional(),
+});
+
+type FeatureForm = z.infer<typeof featureFormSchema>;
+
 type DrawerData = {
   id: DrawerId;
   header: "Report a Bug" | "Suggest a Feature";
-  form: React.ReactNode | null;
+  form: React.ReactNode;
 };
 
 export default function Footer() {
@@ -39,11 +57,11 @@ export default function Footer() {
         url: "/api/v3/github/issue",
         data: requestData,
       }),
-    onSuccess: ({ data }) => {
-      toast({
+    onSuccess: ({ data }: any) => {
+      toaster.create({
+        type: "success",
         title: "Ticket Submitted",
         description: data?.payload?.newIssueUrl ?? null,
-        ...successToastOptions,
       });
       setDrawerId(null);
     },
@@ -96,16 +114,59 @@ ${issueData.desiredFunctionality}`;
     createGithubIssue(requestData);
   };
 
+  const BugForm = () => {
+    const {
+      register,
+      formState: { errors },
+    } = useForm<BugForm>();
+
+    const hasErrors: boolean = Object.values(errors).some(Boolean);
+
+    return (
+      <form>
+        <Field>
+          <Input {...register("description")} />
+        </Field>
+        <Input {...register("reproductionSteps")} />
+        <Input {...register("operatingSystem")} />
+        <Input {...register("browser")} />
+        <Input {...register("device")} />
+        {errors && <Alert status="error" title={} />}
+        <Button type="button">Submit Bug</Button>
+        <Button type="button">Cancel</Button>
+      </form>
+    );
+  };
+
   const bugDrawerData: DrawerData = {
     id: "bug",
     header: "Report a Bug",
     form: null,
   } as const;
 
+  const FeatureForm = () => {
+    const {
+      register,
+      formState: { errors },
+    } = useForm<FeatureForm>();
+    return (
+      <form>
+        <Input {...register("description")} />
+        <Input {...register("desiredFunctionality")} />
+        <Button type="button" onClick={() => {}}>
+          Submit Feature
+        </Button>
+        <Button type="button" onClick={() => {}}>
+          Cancel
+        </Button>
+      </form>
+    );
+  };
+
   const featureDrawerData: DrawerData = {
     id: "feature",
     header: "Suggest a Feature",
-    form: null,
+    form: <FeatureForm />,
   } as const;
 
   return (
@@ -116,9 +177,7 @@ ${issueData.desiredFunctionality}`;
           <span className="hidden sm:inline">
             {"Made with ♥︎ by the SHL Dev Team"}&nbsp;|&nbsp;
           </span>
-          <Link href="https://simulationhockey.com/index.php" isExternal>
-            Visit Forum
-          </Link>
+          <Link href="https://simulationhockey.com/index.php">Visit Forum</Link>
           &nbsp;|&nbsp;
           <Link onClick={() => openDrawer("bug")}>{bugDrawerData.header}</Link>
           &nbsp;|&nbsp;
