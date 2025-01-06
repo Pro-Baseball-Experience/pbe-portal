@@ -4,6 +4,8 @@ import {
   UseMutateFunction,
   useMutation as useReactQueryMutation,
 } from "react-query";
+import { ApiResponse } from "./useQuery";
+import { ApiError } from "../services/ApiError.service";
 
 type MutationResponse<D, V> = {
   mutate: UseMutateFunction<D, unknown, V, unknown>;
@@ -19,14 +21,14 @@ const LOADING_MUTATION: MutationResponse<any, any> = {
   isError: false,
 };
 
-export const useMutation = <D, V extends unknown>({
+export const useMutation = <D, V>({
   mutationFn,
   onSuccess,
   onError,
 }: {
-  mutationFn: MutationFunction<any, V>;
-  onSuccess?: Function;
-  onError?: Function;
+  mutationFn: MutationFunction<D, V>;
+  onSuccess?: (data: ApiResponse<D>) => void;
+  onError?: (data: ApiError) => void;
 }): MutationResponse<D, V> => {
   const { mutate, mutateAsync, isLoading, isError } = useReactQueryMutation(
     mutationFn,

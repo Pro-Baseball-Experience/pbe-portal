@@ -68,7 +68,7 @@ export default function Footer() {
         url: "/api/v3/github/issue",
         data: requestData,
       }),
-    onSuccess: ({ data }) => {
+    onSuccess: (data) => {
       toast({
         title: "Ticket Submitted",
         description: data?.payload?.newIssueUrl ?? null,
