@@ -2,19 +2,24 @@ import { COOKIE_CONFIG, POST } from "@/lib/http/constants";
 import { useCookie } from "@/lib/http/hooks/useCookie";
 import { useMutation } from "@/lib/http/hooks/useMutation";
 import {
+  Alert,
   Button,
+  Drawer,
   DrawerBody,
+  DrawerCloseButton,
   DrawerContent,
   DrawerHeader,
+  DrawerOverlay,
+  FormControl,
   Input,
   Link,
+  useToast,
 } from "@chakra-ui/react";
 import axios from "axios";
 import { useState } from "react";
-import { toaster } from "../toast/toaster";
 import { z } from "zod";
-import { useForm } from "react-hook-form";
-import { Alert } from "../alerts/Alert";
+import { SubmitHandler, useForm } from "react-hook-form";
+import { successToastOptions } from "../toast/toastOptions";
 
 type DrawerId = "bug" | "feature";
 type GithubIssueData = {
@@ -23,6 +28,7 @@ type GithubIssueData = {
   label: "bug" | "story" | null;
 };
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const bugFormSchema = z.object({
   description: z.string(),
   reproductionSteps: z.string().optional(),
@@ -31,14 +37,15 @@ const bugFormSchema = z.object({
   device: z.string().optional(),
 });
 
-type BugForm = z.infer<typeof bugFormSchema>;
+type BugFormValues = z.infer<typeof bugFormSchema>;
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const featureFormSchema = z.object({
   description: z.string(),
   desiredFunctionality: z.string().optional(),
 });
 
-type FeatureForm = z.infer<typeof featureFormSchema>;
+type FeatureFormValues = z.infer<typeof featureFormSchema>;
 
 type DrawerData = {
   id: DrawerId;
@@ -50,18 +57,22 @@ export default function Footer() {
   const [drawerId, setDrawerId] = useState<DrawerId | null>(null);
   const [uid] = useCookie(COOKIE_CONFIG.userId);
 
-  const { mutate: createGithubIssue } = useMutation<void, GithubIssueData>({
+  const toast = useToast();
+  const { mutate: createGithubIssue } = useMutation<
+    { newIssueUrl: string },
+    GithubIssueData
+  >({
     mutationFn: (requestData: GithubIssueData) =>
       axios({
         method: POST,
         url: "/api/v3/github/issue",
         data: requestData,
       }),
-    onSuccess: ({ data }: any) => {
-      toaster.create({
-        type: "success",
+    onSuccess: ({ data }) => {
+      toast({
         title: "Ticket Submitted",
         description: data?.payload?.newIssueUrl ?? null,
+        ...successToastOptions,
       });
       setDrawerId(null);
     },
@@ -71,9 +82,11 @@ export default function Footer() {
     setDrawerId(source);
   };
 
-  const submitGithubIssue = async (
-    issueData: BugFormValues | FeatureFormValues
-  ) => {
+  const onClose = () => {
+    setDrawerId(null);
+  };
+
+  const submitTicket = async (issueData: BugFormValues | FeatureFormValues) => {
     const bugCreator: string = uid ? `by ${uid}` : " anonymously";
 
     const requestData: GithubIssueData = {
@@ -116,24 +129,39 @@ ${issueData.desiredFunctionality}`;
 
   const BugForm = () => {
     const {
+      handleSubmit,
       register,
       formState: { errors },
-    } = useForm<BugForm>();
+    } = useForm<BugFormValues>();
 
     const hasErrors: boolean = Object.values(errors).some(Boolean);
 
+    const submitBug: SubmitHandler<BugFormValues> = async (data) => {
+      await submitTicket(data);
+    };
+
     return (
-      <form>
-        <Field>
+      <form onSubmit={handleSubmit(submitBug)}>
+        <FormControl>
           <Input {...register("description")} />
-        </Field>
+        </FormControl>
         <Input {...register("reproductionSteps")} />
         <Input {...register("operatingSystem")} />
         <Input {...register("browser")} />
         <Input {...register("device")} />
-        {errors && <Alert status="error" title={} />}
-        <Button type="button">Submit Bug</Button>
-        <Button type="button">Cancel</Button>
+        {hasErrors && (
+          <Alert status="error">
+            <ul>
+              {Object.values(errors).map((error, index) => (
+                <li key={index}>{error.message}</li>
+              ))}
+            </ul>
+          </Alert>
+        )}
+        <Button type="submit">Submit Bug</Button>
+        <Button type="button" onClick={onClose}>
+          Cancel
+        </Button>
       </form>
     );
   };
@@ -141,22 +169,36 @@ ${issueData.desiredFunctionality}`;
   const bugDrawerData: DrawerData = {
     id: "bug",
     header: "Report a Bug",
-    form: null,
+    form: <BugForm />,
   } as const;
 
   const FeatureForm = () => {
     const {
+      handleSubmit,
       register,
       formState: { errors },
-    } = useForm<FeatureForm>();
+    } = useForm<FeatureFormValues>();
+
+    const hasErrors: boolean = Object.values(errors).some(Boolean);
+    const submitFeature: SubmitHandler<FeatureFormValues> = async (data) => {
+      await submitTicket(data);
+    };
+
     return (
-      <form>
+      <form onSubmit={handleSubmit(submitFeature)}>
         <Input {...register("description")} />
         <Input {...register("desiredFunctionality")} />
-        <Button type="button" onClick={() => {}}>
-          Submit Feature
-        </Button>
-        <Button type="button" onClick={() => {}}>
+        {hasErrors && (
+          <Alert status="error">
+            <ul>
+              {Object.values(errors).map((error, index) => (
+                <li key={index}>{error.message}</li>
+              ))}
+            </ul>
+          </Alert>
+        )}
+        <Button type="submit">Submit Feature</Button>
+        <Button type="button" onClick={onClose}>
           Cancel
         </Button>
       </form>
@@ -177,7 +219,9 @@ ${issueData.desiredFunctionality}`;
           <span className="hidden sm:inline">
             {"Made with ♥︎ by the SHL Dev Team"}&nbsp;|&nbsp;
           </span>
-          <Link href="https://simulationhockey.com/index.php">Visit Forum</Link>
+          <Link href="https://simulationhockey.com/index.php" isExternal>
+            Visit Forum
+          </Link>
           &nbsp;|&nbsp;
           <Link onClick={() => openDrawer("bug")}>{bugDrawerData.header}</Link>
           &nbsp;|&nbsp;
@@ -186,27 +230,20 @@ ${issueData.desiredFunctionality}`;
           </Link>
         </div>
       </footer>
-      <DrawerRoot
-        placement="bottom"
-        open={drawerId !== null}
-        onOpenChange={() => setDrawerId(null)}
-      >
-        <DrawerBackdrop />
-        <DrawerTrigger asChild>
-          <Button>Drawer Button</Button>
-        </DrawerTrigger>
+      <Drawer placement="bottom" isOpen={drawerId !== null} onClose={onClose}>
+        <DrawerOverlay />
         <DrawerContent>
-          <DrawerCloseTrigger />
-          <DrawerHeader className="bg-primary text-secondary">
+          <DrawerCloseButton />
+          <DrawerHeader>
             {drawerId === "bug" && bugDrawerData.header}
             {drawerId === "feature" && featureDrawerData.header}
           </DrawerHeader>
-          <DrawerBody className="bg-primary text-secondary">
+          <DrawerBody>
             {drawerId === "bug" && bugDrawerData.form}
             {drawerId === "feature" && featureDrawerData.form}
           </DrawerBody>
         </DrawerContent>
-      </DrawerRoot>
+      </Drawer>
     </>
   );
 }
