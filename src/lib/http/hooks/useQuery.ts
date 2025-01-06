@@ -29,41 +29,27 @@ type QueryResponse<T> = ApiResponse<T> & {
   isError: boolean;
 };
 
-const LOADING_RESPONSE: QueryResponse<null> = {
-  status: "loading",
-  payload: null,
-  refetch: () => {},
-  isLoading: true,
-  isError: false,
-} as const;
-
 export const useQuery = <T>({
   queryKey,
   queryFn,
   enabled,
 }: {
   queryKey: string | string[];
-  queryFn: () => Promise<AxiosResponse<any, any>>;
+  queryFn: () => Promise<AxiosResponse<ApiResponse<T>>>;
   enabled?: boolean;
 }): QueryResponse<T> => {
-  const { data, isLoading, isError, refetch } = useReactQueryQuery<{
-    data: ApiResponse<T>;
-  }>({
+  const { data, isLoading, isError, refetch } = useReactQueryQuery({
     queryKey,
     queryFn,
     enabled,
   });
 
-  if (isLoading) {
-    return LOADING_RESPONSE;
-  }
-
-  const responseData = data?.data;
+  const apiResponse = data?.data;
 
   return {
-    status: responseData?.status,
-    payload: responseData?.status === "success" ? responseData?.payload : null,
-    error: responseData?.status === "error" ? responseData?.error : null,
+    status: apiResponse?.status,
+    payload: apiResponse?.status === "success" ? apiResponse?.payload : null,
+    error: apiResponse?.status === "error" ? apiResponse?.error : null,
     refetch,
     isLoading,
     isError,
