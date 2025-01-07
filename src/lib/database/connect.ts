@@ -1,7 +1,7 @@
 import { Client, QueryConfig, QueryResult } from "pg";
 
 export type DatabaseQueryResult<T> =
-  | { rows: T[]; total: number | null }
+  | { rows: T[]; total: number }
   | { error: unknown };
 
 const initializeDB = (database: string | undefined): Client =>
@@ -27,7 +27,7 @@ const getQueryFn =
     try {
       const queryResult: QueryResult = await db.query(query);
       await db.end();
-      return { rows: queryResult.rows, total: queryResult.rowCount };
+      return { rows: queryResult.rows, total: queryResult.rowCount as number };
     } catch (error) {
       return { error };
     }

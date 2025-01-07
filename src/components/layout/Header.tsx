@@ -23,5 +23,5 @@ export const Header = ({ showAuthButtons = true }) => {
     enabled: loggedIn,
   });
 
-  return <div></div>;
+  return <header></header>;
 };

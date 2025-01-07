@@ -18,9 +18,15 @@ type ErrorResponse<T> = {
   error: ApiError;
 };
 
+type LogoutResponse = {
+  status: "logout";
+  message: string;
+};
+
 export type ApiResponse<T> =
   | SuccessResponse<T>
   | ErrorResponse<T>
+  | LogoutResponse
   | LoadingResponse;
 
 type QueryResponse<T> = ApiResponse<T> & {
