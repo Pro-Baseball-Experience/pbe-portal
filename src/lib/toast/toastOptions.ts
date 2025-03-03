@@ -16,7 +16,10 @@ export const warningToastOptions: Partial<UseToastOptions> = {
   ...defaultToastOptions,
 };
 
+export const standardErrorToastDescription: string = "";
+
 export const errorToastOptions: Partial<UseToastOptions> = {
   status: "error",
+  description: standardErrorToastDescription,
   ...defaultToastOptions,
 };

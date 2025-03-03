@@ -6,7 +6,7 @@ import { useRouter } from "next/router";
 import { useQuery } from "@/lib/http/hooks/useQuery";
 import axios from "axios";
 
-export const Header = ({ showAuthButtons = true }) => {
+export default function Header({ showAuthButtons = true }) {
   const { session, loggedIn, handleLogout } = useSession();
   const [drawerVisible, setDrawerVisible] = useState(false);
   const [uid] = useCookie(COOKIE_CONFIG.userId);
@@ -24,4 +24,4 @@ export const Header = ({ showAuthButtons = true }) => {
   });
 
   return <header></header>;
-};
+}

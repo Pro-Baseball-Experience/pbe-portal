@@ -1,5 +1,6 @@
 import { useSession } from "@/components/contexts/SessionContext";
 import Footer from "@/components/layout/Footer";
+import Header from "@/components/layout/Header";
 import { NextSeo } from "next-seo";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";

@@ -1,6 +1,5 @@
-import { COOKIE_CONFIG, POST } from "@/lib/http/constants";
+import { COOKIE_CONFIG } from "@/lib/http/constants";
 import { useCookie } from "@/lib/http/hooks/useCookie";
-import { useMutation } from "@/lib/http/hooks/useMutation";
 import {
   Alert,
   Button,
@@ -13,20 +12,17 @@ import {
   FormControl,
   Input,
   Link,
-  useToast,
+  Spinner,
 } from "@chakra-ui/react";
-import axios from "axios";
 import { useState } from "react";
 import { z } from "zod";
 import { SubmitHandler, useForm } from "react-hook-form";
-import { successToastOptions } from "../toast/toastOptions";
+import {
+  GithubIssueData,
+  useGitHubIssue,
+} from "@/lib/http/mutations/useGitHubIssue";
 
 type DrawerId = "bug" | "feature";
-type GithubIssueData = {
-  title: string;
-  body: string;
-  label: "bug" | "story" | null;
-};
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const bugFormSchema = z.object({
@@ -57,25 +53,8 @@ export default function Footer() {
   const [drawerId, setDrawerId] = useState<DrawerId | null>(null);
   const [uid] = useCookie(COOKIE_CONFIG.userId);
 
-  const toast = useToast();
-  const { mutate: createGithubIssue } = useMutation<
-    { newIssueUrl: string },
-    GithubIssueData
-  >({
-    mutationFn: (requestData: GithubIssueData) =>
-      axios({
-        method: POST,
-        url: "/api/v3/github/issue",
-        data: requestData,
-      }),
-    onSuccess: (data) => {
-      toast({
-        title: "Ticket Submitted",
-        description: data?.payload?.newIssueUrl ?? null,
-        ...successToastOptions,
-      });
-      setDrawerId(null);
-    },
+  const { mutate: createGitHubIssue, isLoading } = useGitHubIssue({
+    onSuccess: () => setDrawerId(null),
   });
 
   const openDrawer = (source: DrawerId) => {
@@ -124,7 +103,7 @@ ${issueData.desiredFunctionality}`;
       return;
     }
 
-    createGithubIssue(requestData);
+    createGitHubIssue(requestData);
   };
 
   const BugForm = () => {
@@ -158,7 +137,9 @@ ${issueData.desiredFunctionality}`;
             </ul>
           </Alert>
         )}
-        <Button type="submit">Submit Bug</Button>
+        <Button type="submit" disabled={isLoading}>
+          {isLoading ? <Spinner /> : "Submit Bug"}
+        </Button>
         <Button type="button" onClick={onClose}>
           Cancel
         </Button>
@@ -197,7 +178,9 @@ ${issueData.desiredFunctionality}`;
             </ul>
           </Alert>
         )}
-        <Button type="submit">Submit Feature</Button>
+        <Button type="submit" disabled={isLoading}>
+          {isLoading ? <Spinner /> : "Submit Feature"}
+        </Button>
         <Button type="button" onClick={onClose}>
           Cancel
         </Button>
